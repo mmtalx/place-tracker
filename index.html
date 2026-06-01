@@ -775,18 +775,38 @@ function renderStars(container, rating, interactive = false) {
   for (let i = 1; i <= 5; i++) {
     const w = document.createElement("span");
     w.className = "star-wrap" + (interactive ? " interactive" : "");
+    w.dataset.idx = i;
     w.innerHTML = starSVG(i <= rating);
-
-    if (interactive) {
-      w.addEventListener("click", () => {
-        formRating = i;
-        renderStars(container, i, true);
-      });
-      w.addEventListener("mouseenter", () => renderStars(container, i, true));
-      w.addEventListener("mouseleave", () => renderStars(container, formRating, true));
-    }
     container.appendChild(w);
   }
+
+  if (interactive) {
+    // Hover: just update colors, never re-render DOM
+    container.addEventListener("mouseenter", e => {
+      const idx = parseInt(e.target.closest(".star-wrap")?.dataset.idx);
+      if (idx) highlightStars(container, idx);
+    }, true);
+    container.addEventListener("mouseleave", () => highlightStars(container, formRating));
+
+    container.querySelectorAll(".star-wrap").forEach(w => {
+      w.addEventListener("click", () => {
+        formRating = parseInt(w.dataset.idx);
+        highlightStars(container, formRating);
+      });
+      w.addEventListener("mouseenter", () => highlightStars(container, parseInt(w.dataset.idx)));
+    });
+  }
+}
+
+function highlightStars(container, rating) {
+  container.querySelectorAll(".star-wrap").forEach((w, i) => {
+    const filled = (i + 1) <= rating;
+    const path = w.querySelector("path");
+    if (path) {
+      path.setAttribute("fill",   filled ? "#a8d4ea" : "#142035");
+      path.setAttribute("stroke", filled ? "#6aaec8" : "#1e3348");
+    }
+  });
 }
 
 
