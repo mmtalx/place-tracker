@@ -694,14 +694,6 @@
 
 // ================================================================
 // 🔥 FIREBASE CONFIGURATION
-// ---------------------------------------------------------------
-// 1. Visit https://console.firebase.google.com
-// 2. Create a new project (any name)
-// 3. Click "Add app" → Web (</>)
-// 4. Copy the firebaseConfig object and paste the values below
-// 5. In the Firebase Console:
-//    - Build → Firestore Database → Create (start in TEST MODE)
-//    - Build → Storage → Get started (start in TEST MODE)
 // ================================================================
 const firebaseConfig = {
   apiKey:            "AIzaSyDdnXx4RvOoAZwN2Ze-FUyiPHCzvw1sIA4",
@@ -712,17 +704,13 @@ const firebaseConfig = {
   appId:             "1:521162811770:web:f6adc22fe7ba325e580ec3"
 };
 // ================================================================
-// 🖼️ IMGBB CONFIGURATION (free photo hosting)
-// ---------------------------------------------------------------
-// 1. Sign up at https://imgbb.com
-// 2. Go to https://api.imgbb.com → click "Get API key"
-// 3. Paste your key below
+// 🖼️ IMGBB CONFIGURATION
 // ================================================================
 const IMGBB_KEY = "cce112902577206feba31d48b37fdca1";
 // ================================================================
 
 
-// ── State (declared first so nothing is ever undefined) ───────────
+// ── State ─────────────────────────────────────────────────────────
 let db;
 let places       = [];
 let formRating   = 0;
@@ -735,7 +723,7 @@ let addMarker    = null;
 let detailMap    = null;
 
 
-// ── Boot ─────────────────────────────────────────────────────────
+// ── Boot ──────────────────────────────────────────────────────────
 const CONFIGURED = firebaseConfig.apiKey !== "YOUR_API_KEY";
 
 if (CONFIGURED) {
@@ -755,15 +743,9 @@ if (CONFIGURED) {
 
 
 // ── Star SVG ──────────────────────────────────────────────────────
-// ✏️ TO USE YOUR GF'S ILLUSTRATION:
-//   Replace the <path> below with your custom SVG path data.
-//   The path should fit in a 24×24 viewBox.
-//   - Filled stars use #d4a847 (gold)
-//   - Empty stars use #3a2e20 (dim)
 function starSVG(filled) {
   const c = filled ? "#a8d4ea" : "#142035";
   const s = filled ? "#6aaec8" : "#1e3348";
-  // ↓ Replace just this path with your custom illustration path ↓
   return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path class="star-fill" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
       fill="${c}" stroke="${s}" stroke-width="1.4" stroke-linejoin="round"/>
@@ -781,7 +763,6 @@ function renderStars(container, rating, interactive = false) {
   }
 
   if (interactive) {
-    // Hover: just update colors, never re-render DOM
     container.addEventListener("mouseenter", e => {
       const idx = parseInt(e.target.closest(".star-wrap")?.dataset.idx);
       if (idx) highlightStars(container, idx);
@@ -851,11 +832,12 @@ function renderGallery(list) {
 
     const count = (p.photos || []).length;
 
+    // ── FIX: use class "card-stars" and querySelector instead of id ──
     card.innerHTML = `
       ${photoHtml}
       <div class="card-body">
         <div class="card-name">${p.name}</div>
-        <div class="stars" id="cs-${p.id}"></div>
+        <div class="stars card-stars"></div>
         <div class="card-meta">
           <span>${fmtDate(p.date)}</span>
           <span>${count} photo${count !== 1 ? "s" : ""}</span>
@@ -863,7 +845,7 @@ function renderGallery(list) {
       </div>`;
 
     g.appendChild(card);
-    renderStars(document.getElementById(`cs-${p.id}`), p.rating || 0);
+    renderStars(card.querySelector(".card-stars"), p.rating || 0);
   });
 }
 
@@ -998,7 +980,6 @@ async function savePlace() {
   btn.textContent = "Saving…"; btn.disabled = true;
 
   try {
-    // Upload new photos to ImgBB
     let uploadedUrls = [];
     if (newPhotos.length) {
       const wrap = document.getElementById("progressWrap");
@@ -1061,7 +1042,6 @@ function openDetail(p) {
 
   document.getElementById("dName").textContent = p.name;
 
-  // Photos
   const dPhotos = document.getElementById("dPhotos");
   dPhotos.innerHTML = "";
   (p.photos || []).forEach(url => {
@@ -1071,10 +1051,8 @@ function openDetail(p) {
     dPhotos.appendChild(img);
   });
 
-  // Stars
   renderStars(document.getElementById("dStars"), p.rating || 0);
 
-  // Date
   const dDate = document.getElementById("dDateWrap");
   if (p.date) {
     document.getElementById("dDate").textContent = fmtDate(p.date);
@@ -1083,7 +1061,6 @@ function openDetail(p) {
     dDate.style.display = "none";
   }
 
-  // Description
   const dDesc = document.getElementById("dDescWrap");
   if (p.description) {
     document.getElementById("dDesc").textContent = p.description;
@@ -1092,7 +1069,6 @@ function openDetail(p) {
     dDesc.style.display = "none";
   }
 
-  // Map
   const dMap = document.getElementById("dMapWrap");
   if (p.lat && p.lng) {
     dMap.style.display = "";
@@ -1163,7 +1139,6 @@ document.addEventListener("keydown", e => {
   }
 });
 
-// Click outside modal to close
 document.getElementById("addModal").addEventListener("click", e => {
   if (e.target === e.currentTarget) closeAddModal();
 });
